@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Customer } from "@/lib/supabase";
 import {
   Table,
@@ -11,21 +12,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Edit2, Trash2, Plus, Search } from "lucide-react";
 import { CustomerFormModal } from "./CustomerFormModal";
 import { DeleteCustomerDialog } from "./DeleteCustomerDialog";
 
 export function CustomerTable({ initialCustomers }: { initialCustomers: Customer[] }) {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-  const handleEdit = (customer: Customer) => {
+  const handleEdit = (e: React.MouseEvent, customer: Customer) => {
+    e.stopPropagation();
     setSelectedCustomer(customer);
     setFormOpen(true);
   };
 
-  const handleDelete = (customer: Customer) => {
+  const handleDelete = (e: React.MouseEvent, customer: Customer) => {
+    e.stopPropagation();
     setSelectedCustomer(customer);
     setDeleteOpen(true);
   };
@@ -34,10 +40,29 @@ export function CustomerTable({ initialCustomers }: { initialCustomers: Customer
     setSelectedCustomer(null);
     setFormOpen(true);
   };
+  
+  const handleRowClick = (id: string) => {
+    router.push(`/customers/${id}`);
+  };
+
+  const filteredCustomers = initialCustomers.filter((c) => {
+    const q = searchQuery.toLowerCase();
+    return c.name.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q);
+  });
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search customers..."
+            className="pl-8 bg-white"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         <Button onClick={handleAddNew}>
           <Plus className="mr-2 h-4 w-4" /> Add Customer
         </Button>
@@ -48,13 +73,17 @@ export function CustomerTable({ initialCustomers }: { initialCustomers: Customer
           <div className="p-12 text-center">
             <h3 className="mt-2 text-sm font-semibold text-gray-900">No customers</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Get started by adding a new customer to your database.
+              Get started by creating a new customer.
             </p>
             <div className="mt-6">
               <Button onClick={handleAddNew}>
                 <Plus className="mr-2 h-4 w-4" /> Add Customer
               </Button>
             </div>
+          </div>
+        ) : filteredCustomers.length === 0 ? (
+          <div className="p-12 text-center text-gray-500">
+            No customers found matching "{searchQuery}"
           </div>
         ) : (
           <Table>
@@ -63,16 +92,20 @@ export function CustomerTable({ initialCustomers }: { initialCustomers: Customer
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Address</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Added On</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {initialCustomers.map((customer) => (
-                <TableRow key={customer.id}>
+              {filteredCustomers.map((customer) => (
+                <TableRow 
+                  key={customer.id} 
+                  className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleRowClick(customer.id)}
+                >
                   <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell>{customer.phone}</TableCell>
-                  <TableCell className="text-muted-foreground">{customer.address || "-"}</TableCell>
+                  <TableCell>{customer.address || "-"}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(customer.created_at).toLocaleDateString()}
                   </TableCell>
@@ -80,14 +113,14 @@ export function CustomerTable({ initialCustomers }: { initialCustomers: Customer
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(customer)}
+                      onClick={(e) => handleEdit(e, customer)}
                     >
                       <Edit2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(customer)}
+                      onClick={(e) => handleDelete(e, customer)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
