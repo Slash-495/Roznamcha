@@ -4,13 +4,13 @@ import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
 export async function addCustomer(data: { name: string, phone: string, address?: string }) {
-  const { error } = await supabase.from('customers').insert([data])
+  const { data: inserted, error } = await supabase.from('customers').insert([data]).select('id').single()
   if (error) {
     console.error("Error adding customer", error);
     return { success: false, error: error.message };
   }
   revalidatePath('/customers')
-  return { success: true };
+  return { success: true, id: inserted.id };
 }
 
 export async function updateCustomer(id: string, data: { name: string, phone: string, address?: string }) {

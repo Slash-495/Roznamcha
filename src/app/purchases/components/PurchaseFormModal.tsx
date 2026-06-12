@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Purchase } from "@/lib/supabase";
 import { addPurchase, updatePurchase } from "../actions";
+import { addCustomer } from "@/app/customers/actions";
 import { Plus, Trash2 } from "lucide-react";
 
 interface Props {
@@ -31,6 +32,8 @@ interface ProductEntry {
 export function PurchaseFormModal({ open, onOpenChange, purchase, customers }: Props) {
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   
   const [products, setProducts] = useState<ProductEntry[]>([
@@ -49,11 +52,18 @@ export function PurchaseFormModal({ open, onOpenChange, purchase, customers }: P
         },
       ]);
     } else if (!purchase && open) {
-      setCustomerId("");
+      if (customers.length === 1) {
+        setCustomerId(customers[0].id);
+        setCustomerSearch(`${customers[0].name} (${customers[0].phone})`);
+      } else {
+        setCustomerId("");
+        setCustomerSearch("");
+      }
+      setNewCustomerPhone("");
       setPurchaseDate(new Date().toISOString().split("T")[0]);
       setProducts([{ product_name: "", quantity: "1", amount: "" }]);
     }
-  }, [purchase, open]);
+  }, [purchase, open, customers]);
 
   const handleProductChange = (index: number, field: keyof ProductEntry, value: string) => {
     const updated = [...products];
@@ -74,6 +84,17 @@ export function PurchaseFormModal({ open, onOpenChange, purchase, customers }: P
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!purchase && !customerId) {
+      if (!customerSearch) {
+        alert("Please enter a customer name.");
+        return;
+      }
+      if (!newCustomerPhone) {
+        alert("Please enter a phone number for the new customer.");
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       if (purchase) {
@@ -88,8 +109,20 @@ export function PurchaseFormModal({ open, onOpenChange, purchase, customers }: P
         if (result && !result.success) alert("Error: " + result.error);
         else onOpenChange(false);
       } else {
+        let finalCustomerId = customerId;
+        
+        if (!finalCustomerId) {
+          const createResult = await addCustomer({ name: customerSearch, phone: newCustomerPhone, address: "" });
+          if (!createResult.success || !createResult.id) {
+            alert("Error creating new customer: " + createResult.error);
+            setLoading(false);
+            return;
+          }
+          finalCustomerId = createResult.id;
+        }
+
         const payload = products.map((p) => ({
-          customer_id: customerId,
+          customer_id: finalCustomerId,
           product_name: p.product_name,
           quantity: parseInt(p.quantity),
           amount: parseFloat(p.amount),
@@ -118,25 +151,47 @@ export function PurchaseFormModal({ open, onOpenChange, purchase, customers }: P
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="grid grid-cols-2 gap-4">
             {!purchase && (
-              <div className="space-y-2">
+              <div className="space-y-2 col-span-2 md:col-span-1">
                 <Label htmlFor="customer">Customer *</Label>
-                <select
+                <Input
+                  list="customer-list"
                   id="customer"
                   required
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={customerId}
-                  onChange={(e) => setCustomerId(e.target.value)}
-                >
-                  <option value="" disabled>Select a customer</option>
+                  placeholder="Type to search customer..."
+                  value={customerSearch}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    const matched = customers.find(c => `${c.name} (${c.phone})` === e.target.value);
+                    if (matched) {
+                      setCustomerId(matched.id);
+                      setNewCustomerPhone("");
+                    } else {
+                      setCustomerId("");
+                    }
+                  }}
+                />
+                <datalist id="customer-list">
                   {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.phone})
-                    </option>
+                    <option key={c.id} value={`${c.name} (${c.phone})`} />
                   ))}
-                </select>
+                </datalist>
+                
+                {!customerId && customerSearch.length > 0 && (
+                  <div className="mt-3 space-y-2 p-3 bg-blue-50/50 border border-blue-100 rounded-md">
+                    <Label htmlFor="new_phone" className="text-blue-700 text-xs">Creating New Customer: Phone *</Label>
+                    <Input
+                      id="new_phone"
+                      type="tel"
+                      required
+                      placeholder="Enter phone number"
+                      value={newCustomerPhone}
+                      onChange={(e) => setNewCustomerPhone(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             )}
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2 md:col-span-1">
               <Label htmlFor="purchase_date">Date *</Label>
               <Input
                 id="purchase_date"
