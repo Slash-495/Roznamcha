@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, ShoppingCart, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, ShoppingCart, Settings, LogOut, Package } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Purchases", href: "/purchases", icon: ShoppingCart },
+  { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

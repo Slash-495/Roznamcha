@@ -36,3 +36,15 @@ export type Purchase = {
   created_at: string;
   customers?: { name: string; phone: string };
 };
+
+export type Product = {
+  id: string;
+  merchant_id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit_price: number;
+  minimum_stock_threshold: number;
+  created_at: string;
+  updated_at: string;
+};
