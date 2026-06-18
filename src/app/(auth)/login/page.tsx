@@ -13,11 +13,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -32,6 +34,28 @@ export default function LoginPage() {
     router.refresh();
   };
 
+  const handleResetPassword = async () => {
+    setError("");
+    setMessage("");
+    
+    if (!email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/settings`,
+    });
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage("Password reset link sent to your email address.");
+    }
+  };
+
   return (
     <div className="w-full max-w-md">
       <div className="bg-white border border-border rounded-xl shadow-sm p-8">
@@ -43,6 +67,11 @@ export default function LoginPage() {
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
             {error}
+          </div>
+        )}
+        {message && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
+            {message}
           </div>
         )}
 
@@ -60,7 +89,17 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                disabled={loading}
+                className="text-xs text-primary font-medium hover:underline disabled:opacity-50"
+              >
+                Forgot Password?
+              </button>
+            </div>
             <Input
               id="password"
               type="password"
@@ -72,7 +111,7 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Please wait..." : "Sign In"}
           </Button>
         </form>
 

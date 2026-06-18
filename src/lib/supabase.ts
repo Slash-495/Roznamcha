@@ -10,6 +10,9 @@ export type Merchant = {
   shop_name: string;
   owner_name: string;
   email: string;
+  phone_number?: string | null;
+  shop_address?: string | null;
+  business_category?: string | null;
   created_at: string;
 };
 
