@@ -4,6 +4,7 @@ import { RevenueChart } from "./components/dashboard/RevenueChart";
 import { RecentPurchases } from "./components/dashboard/RecentPurchases";
 import { TopList } from "./components/dashboard/TopList";
 import { ActivityFeed, ActivityEvent } from "./components/dashboard/ActivityFeed";
+import { AiInsightsWidget } from "./components/dashboard/AiInsightsWidget";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -132,17 +133,20 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <div className="lg:col-span-3">
+          <AiInsightsWidget />
+        </div>
         <div className="lg:col-span-4 rounded-xl border bg-white shadow-sm p-6">
           <h3 className="font-semibold mb-4">Revenue Trend (Last 6 Months)</h3>
           <RevenueChart data={revenueData} />
         </div>
-        <div className="lg:col-span-3 rounded-xl border bg-white shadow-sm p-6">
-          <h3 className="font-semibold">Recent Purchases</h3>
-          <RecentPurchases purchases={recentPurchases} />
-        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
+        <div className="rounded-xl border bg-white shadow-sm p-6">
+          <h3 className="font-semibold mb-4">Recent Purchases</h3>
+          <RecentPurchases purchases={recentPurchases} />
+        </div>
         <div className="rounded-xl border bg-white shadow-sm p-6">
           <h3 className="font-semibold mb-4">Top Customers</h3>
           <TopList items={topCustomers} emptyMessage="No customers yet." valuePrefix="₹" />
@@ -151,6 +155,9 @@ export default async function DashboardPage() {
           <h3 className="font-semibold mb-4">Most Sold Products</h3>
           <TopList items={topProducts} emptyMessage="No purchases yet." />
         </div>
+      </div>
+
+      <div className="grid gap-6">
         <div className="rounded-xl border bg-white shadow-sm p-6">
           <h3 className="font-semibold mb-4">Recent Activity</h3>
           <ActivityFeed events={activities} />
