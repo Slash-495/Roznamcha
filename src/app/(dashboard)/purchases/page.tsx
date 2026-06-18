@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
 import { PurchaseTable } from "./components/PurchaseTable";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
@@ -7,9 +7,13 @@ export default async function PurchasesPage(props: { searchParams?: Promise<{ fi
   const searchParams = await props.searchParams;
   const filter = searchParams?.filter || "all";
 
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   let query = supabase
     .from("purchases")
     .select("*, customers(name, phone)")
+    .eq("merchant_id", user?.id)
     .order("purchase_date", { ascending: false });
 
   if (filter !== "all") {
@@ -37,6 +41,7 @@ export default async function PurchasesPage(props: { searchParams?: Promise<{ fi
   const { data: customers, error: customersError } = await supabase
     .from("customers")
     .select("id, name, phone")
+    .eq("merchant_id", user?.id)
     .order("name", { ascending: true });
 
   if (purchasesError) console.error("Error fetching purchases:", purchasesError);

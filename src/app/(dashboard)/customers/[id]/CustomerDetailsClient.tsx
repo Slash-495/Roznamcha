@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit2, Plus } from "lucide-react";
 import { CustomerFormModal } from "../components/CustomerFormModal";
-import { PurchaseFormModal } from "@/app/purchases/components/PurchaseFormModal";
+import { PurchaseFormModal } from "@/app/(dashboard)/purchases/components/PurchaseFormModal";
 import { Customer, Purchase } from "@/lib/supabase";
 
 interface Props {

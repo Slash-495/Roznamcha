@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { StatCard } from "./components/dashboard/StatCard";
 import { RevenueChart } from "./components/dashboard/RevenueChart";
 import { RecentPurchases } from "./components/dashboard/RecentPurchases";
@@ -9,8 +9,11 @@ import { format } from "date-fns";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const { data: customers } = await supabase.from("customers").select("*");
-  const { data: purchases } = await supabase.from("purchases").select("*, customers(name, phone)").order("purchase_date", { ascending: false });
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: customers } = await supabase.from("customers").select("*").eq("merchant_id", user?.id);
+  const { data: purchases } = await supabase.from("purchases").select("*, customers(name, phone)").eq("merchant_id", user?.id).order("purchase_date", { ascending: false });
 
   const safeCustomers = customers || [];
   const safePurchases = purchases || [];

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Purchase } from "@/lib/supabase";
 import { addPurchase, updatePurchase } from "../actions";
-import { addCustomer } from "@/app/customers/actions";
+import { addCustomer } from "@/app/(dashboard)/customers/actions";
 import { Plus, Trash2 } from "lucide-react";
 
 interface Props {

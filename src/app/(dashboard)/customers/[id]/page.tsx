@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { CustomerDetailsClient } from "./CustomerDetailsClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const supabase = await createSupabaseServerClient();
 
   const { data: customer, error: customerError } = await supabase
     .from("customers")
