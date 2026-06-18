@@ -14,9 +14,11 @@ export default async function DashboardPage() {
 
   const { data: customers } = await supabase.from("customers").select("*").eq("merchant_id", user?.id);
   const { data: purchases } = await supabase.from("purchases").select("*, customers(name, phone)").eq("merchant_id", user?.id).order("purchase_date", { ascending: false });
+  const { data: khataTransactions } = await supabase.from("khata_transactions").select("*").eq("merchant_id", user?.id);
 
   const safeCustomers = customers || [];
   const safePurchases = purchases || [];
+  const safeKhata = khataTransactions || [];
 
   // 1. Overview Stats
   const totalCustomers = safeCustomers.length;
@@ -24,10 +26,30 @@ export default async function DashboardPage() {
   const totalRevenue = safePurchases.reduce((sum, p) => sum + Number(p.amount), 0);
   const avgOrderValue = totalPurchases > 0 ? totalRevenue / totalPurchases : 0;
 
-  // 2. Recent Purchases
+  // 2. Khata Stats
+  const totalOutstanding = safeCustomers.reduce((sum, c) => sum + Number(c.pending_amount || 0), 0);
+  const pendingCustomersCount = safeCustomers.filter(c => Number(c.pending_amount || 0) > 0).length;
+  
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const thisMonthKhata = safeKhata.filter(t => {
+    const d = new Date(t.created_at);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+  
+  const recoveredThisMonth = thisMonthKhata
+    .filter(t => t.transaction_type === "recovery")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+    
+  const creditThisMonth = thisMonthKhata
+    .filter(t => t.transaction_type === "credit")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  // 3. Recent Purchases
   const recentPurchases = safePurchases.slice(0, 5);
 
-  // 3. Top Customers
+  // 4. Top Customers
   const customerSpendMap = new Map<string, { name: string; total: number; orders: number }>();
   safePurchases.forEach(p => {
     const id = p.customer_id;
@@ -44,7 +66,7 @@ export default async function DashboardPage() {
     .slice(0, 5)
     .map(c => ({ name: c.name, sub: `${c.orders} orders`, value: c.total }));
 
-  // 4. Most Sold Products
+  // 5. Most Sold Products
   const productSalesMap = new Map<string, number>();
   safePurchases.forEach(p => {
     const current = productSalesMap.get(p.product_name) || 0;
@@ -55,7 +77,7 @@ export default async function DashboardPage() {
     .slice(0, 5)
     .map(p => ({ name: p[0], value: p[1] }));
 
-  // 5. Revenue Trend (Last 6 Months)
+  // 6. Revenue Trend (Last 6 Months)
   const revenueMap = new Map<string, number>();
   for (let i = 5; i >= 0; i--) {
     const d = new Date();
@@ -70,7 +92,7 @@ export default async function DashboardPage() {
   });
   const revenueData = Array.from(revenueMap.entries()).map(([month, revenue]) => ({ month, revenue }));
 
-  // 6. Recent Activity
+  // 7. Recent Activity
   const activities: ActivityEvent[] = [
     ...safeCustomers.map(c => ({
       id: `c_${c.id}`,
@@ -92,7 +114,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Overview of your shop's performance.</p>
+        <p className="text-muted-foreground">Overview of your shop's performance and Khata.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -100,6 +122,13 @@ export default async function DashboardPage() {
         <StatCard title="Total Purchases" value={totalPurchases} />
         <StatCard title="Total Revenue" value={totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
         <StatCard title="Avg Order Value" value={avgOrderValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard title="Total Outstanding" value={totalOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
+        <StatCard title="Pending Customers" value={pendingCustomersCount} />
+        <StatCard title="Recovered This Month" value={recoveredThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
+        <StatCard title="Credit This Month" value={creditThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">

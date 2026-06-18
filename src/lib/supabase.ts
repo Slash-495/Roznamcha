@@ -22,6 +22,8 @@ export type Customer = {
   name: string;
   phone: string;
   address: string | null;
+  pending_amount: number;
+  last_transaction_date: string | null;
   created_at: string;
 };
 
@@ -47,4 +49,14 @@ export type Product = {
   minimum_stock_threshold: number;
   created_at: string;
   updated_at: string;
+};
+
+export type KhataTransaction = {
+  id: string;
+  merchant_id: string;
+  customer_id: string;
+  transaction_type: "credit" | "recovery";
+  amount: number;
+  note: string | null;
+  created_at: string;
 };
