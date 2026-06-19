@@ -6,6 +6,7 @@ import { TopList } from "./components/dashboard/TopList";
 import { ActivityFeed, ActivityEvent } from "./components/dashboard/ActivityFeed";
 import { AiInsightsWidget } from "./components/dashboard/AiInsightsWidget";
 import { AiStockAlertsWidget } from "./components/dashboard/AiStockAlertsWidget";
+import { AiDailySummaryWidget } from "./components/dashboard/AiDailySummaryWidget";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -132,6 +133,9 @@ export default async function DashboardPage() {
         <StatCard title="Recovered This Month" value={recoveredThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
         <StatCard title="Credit This Month" value={creditThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="₹" />
       </div>
+
+      {/* AI Daily Summary - Full Width Top Banner */}
+      <AiDailySummaryWidget />
 
       <div className="grid gap-6 lg:grid-cols-7 items-start">
         

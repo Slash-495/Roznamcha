@@ -142,3 +142,69 @@ export function getFallbackStockAlerts(data: {
 
   return { score, alerts: alerts.slice(0, 4) };
 }
+
+export interface DailyHighlight {
+  type: "success" | "warning" | "info";
+  text: string;
+}
+
+export interface DailySummaryResult {
+  summaryText: string;
+  healthScore: number;
+  highlights: DailyHighlight[];
+}
+
+export function getFallbackDailySummary(data: {
+  totalSalesToday: number;
+  newCustomersToday: number;
+  totalDues: number;
+  lowStockCount: number;
+}): DailySummaryResult {
+  let healthScore = 80;
+  const highlights: DailyHighlight[] = [];
+
+  if (data.totalSalesToday > 0) {
+    highlights.push({ type: "success", text: `₹${data.totalSalesToday.toLocaleString()} in sales today` });
+    healthScore += 5;
+  } else {
+    highlights.push({ type: "info", text: "No sales recorded today yet" });
+    healthScore -= 10;
+  }
+
+  if (data.newCustomersToday > 0) {
+    highlights.push({ type: "success", text: `${data.newCustomersToday} new customers added` });
+    healthScore += 5;
+  }
+
+  if (data.totalDues > 10000) {
+    highlights.push({ type: "warning", text: `High pending dues: ₹${data.totalDues.toLocaleString()}` });
+    healthScore -= 10;
+  } else if (data.totalDues > 0) {
+    highlights.push({ type: "warning", text: `Pending dues: ₹${data.totalDues.toLocaleString()}` });
+    healthScore -= 5;
+  }
+
+  if (data.lowStockCount > 0) {
+    highlights.push({ type: "warning", text: `${data.lowStockCount} items low on stock` });
+    healthScore -= (data.lowStockCount * 2);
+  } else {
+    highlights.push({ type: "success", text: "Inventory levels look great" });
+    healthScore += 5;
+  }
+
+  if (healthScore > 100) healthScore = 100;
+  if (healthScore < 0) healthScore = 0;
+
+  let summaryText = `Your business generated ₹${data.totalSalesToday.toLocaleString()} in sales today. `;
+  if (data.newCustomersToday > 0) {
+    summaryText += `You welcomed ${data.newCustomersToday} new customers. `;
+  }
+  if (data.lowStockCount > 0) {
+    summaryText += `You have ${data.lowStockCount} items that need restocking soon. `;
+  }
+  if (data.totalDues > 0) {
+    summaryText += `Keep an eye on ₹${data.totalDues.toLocaleString()} in pending customer dues.`;
+  }
+
+  return { summaryText, healthScore, highlights };
+}
