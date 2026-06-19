@@ -47,7 +47,7 @@ export function AiInsightsWidget() {
   };
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm overflow-hidden flex flex-col h-full">
+    <div className="rounded-xl border bg-white shadow-sm overflow-hidden flex flex-col">
       <div className="border-b bg-gray-50/50 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-green-600" />
@@ -65,7 +65,7 @@ export function AiInsightsWidget() {
         </Button>
       </div>
 
-      <div className="p-6 flex-1 flex flex-col justify-center">
+      <div className="p-6">
         {loading ? (
           <div className="space-y-4 animate-pulse">
             {[1, 2, 3].map((i) => (

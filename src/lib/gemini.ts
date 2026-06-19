@@ -67,3 +67,78 @@ export function getFallbackInsights(data: {
 
   return insights;
 }
+
+export interface StockAlert {
+  id: string;
+  type: "critical" | "warning" | "fast_moving" | "slow_moving";
+  productName: string;
+  recommendation: string;
+}
+
+export function getFallbackStockAlerts(data: {
+  critical: string[];
+  warning: string[];
+  fast: string[];
+  slow: string[];
+}): { score: number; alerts: StockAlert[] } {
+  const alerts: StockAlert[] = [];
+  
+  // Basic health score calculation
+  const totalIssues = data.critical.length * 2 + data.warning.length + data.slow.length;
+  let score = 100 - (totalIssues * 5);
+  if (score < 0) score = 0;
+  if (data.fast.length > 0) score += 5;
+  if (score > 100) score = 100;
+
+  // Add Critical
+  data.critical.slice(0, 2).forEach((prod, i) => {
+    alerts.push({
+      id: `crit_${i}`,
+      type: "critical",
+      productName: prod,
+      recommendation: `Out of stock! Restock immediately to avoid losing sales.`
+    });
+  });
+
+  // Add Warning
+  data.warning.slice(0, 2).forEach((prod, i) => {
+    alerts.push({
+      id: `warn_${i}`,
+      type: "warning",
+      productName: prod,
+      recommendation: `Below minimum threshold. Consider ordering more soon.`
+    });
+  });
+
+  // Add Fast Moving
+  data.fast.slice(0, 1).forEach((prod, i) => {
+    alerts.push({
+      id: `fast_${i}`,
+      type: "fast_moving",
+      productName: prod,
+      recommendation: `Selling rapidly. Ensure you have enough supply for the coming weeks.`
+    });
+  });
+
+  // Add Slow Moving
+  data.slow.slice(0, 1).forEach((prod, i) => {
+    alerts.push({
+      id: `slow_${i}`,
+      type: "slow_moving",
+      productName: prod,
+      recommendation: `Hasn't moved recently. Consider a discount or promotional placement.`
+    });
+  });
+
+  // Fill up to 4 if we don't have enough
+  if (alerts.length === 0) {
+    alerts.push({
+      id: "healthy_1",
+      type: "fast_moving",
+      productName: "Inventory Healthy",
+      recommendation: "Your stock levels are well balanced and nothing requires immediate attention."
+    });
+  }
+
+  return { score, alerts: alerts.slice(0, 4) };
+}
