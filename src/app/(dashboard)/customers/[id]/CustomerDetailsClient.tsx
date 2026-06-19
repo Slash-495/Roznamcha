@@ -101,7 +101,11 @@ export function CustomerDetailsClient({ customer, purchases, khataTransactions }
       <div className="flex justify-end items-center gap-3">
         <span className="text-sm font-medium text-muted-foreground">Filter by:</span>
         <div className="w-[180px]">
-          <Select value={timeFilter} onValueChange={(val) => setTimeFilter(val || "all")}>
+          <Select value={timeFilter} onValueChange={(value) => {
+            if (value) {
+              setTimeFilter(value);
+            }
+          }}>
             <SelectTrigger>
               <SelectValue placeholder="Select Time" />
             </SelectTrigger>

@@ -91,7 +91,11 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
               className="pl-9"
             />
           </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={categoryFilter} onValueChange={(value) => {
+            if (value) {
+              setCategoryFilter(value);
+            }
+          }}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -102,7 +106,11 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
               ))}
             </SelectContent>
           </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={sortBy} onValueChange={(value) => {
+            if (value) {
+              setSortBy(value);
+            }
+          }}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>

@@ -11,10 +11,7 @@ interface Props {
   merchant: Merchant;
 }
 
-const initialState = {
-  success: "",
-  error: "",
-};
+const initialState: { success?: string; error?: string } = {};
 
 export function SettingsForm({ merchant }: Props) {
   const [state, formAction, isPending] = useActionState(updateMerchantProfile, initialState);

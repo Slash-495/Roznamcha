@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 
-export async function updateMerchantProfile(prevState: any, formData: FormData) {
+export async function updateMerchantProfile(prevState: { success?: string; error?: string }, formData: FormData): Promise<{ success?: string; error?: string }> {
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
