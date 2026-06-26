@@ -31,9 +31,6 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
           <div>
             <p className="font-medium text-sm">{event.title}</p>
             <p className="text-sm text-muted-foreground">{event.description}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatDistanceToNow(event.date, { addSuffix: true })}
-            </p>
           </div>
         </div>
       ))}
